@@ -1,7 +1,10 @@
-import { BufferAttribute, BufferGeometry, DoubleSide, Material, Mesh, MeshBasicMaterial } from "./lib/three.mjs";
+import { AirBlock, GrassBlock, StoneBlock } from "../block/nature.js";
+import { Block } from "./block.js";
+import { BufferAttribute, BufferGeometry, DoubleSide, Material, Mesh, MeshBasicMaterial, NearestFilter, Texture } from "./lib/three.mjs";
+import { loadTexture } from "./util.js";
 
 /**
- * @typedef {{position:number[]}} BlockFaceGeometryData
+ * @typedef {{position:number[], uv:number[]}} BlockFaceGeometryData
  */
 
 /**
@@ -30,13 +33,30 @@ export class Chunk {
     static volume = this.size**3;
 
     /**
+     * The threejs texture on each chunk.
+     * @type {Texture}
+     * @readonly
+     */
+    static texture = loadTexture("./assets/chunk_test.png");
+
+    /**
+     * The texture atlas.
+     * @type {number}
+     * @readonly
+     */
+    static atlasSize = 4;
+
+    /**
      * The material applied to all chunks.
      * @type {Material}
      * @readonly
      */
-    static material = new MeshBasicMaterial({color:0xffffff,side:DoubleSide});
+    static material = new MeshBasicMaterial({map:this.texture,side:DoubleSide});
 
     constructor() {
+        Chunk.texture.magFilter = NearestFilter;
+        Chunk.texture.minFilter = NearestFilter;
+
         /**
          * The threejs mesh used to render the chunk.
          * @type {Mesh}
@@ -48,10 +68,10 @@ export class Chunk {
         /**
          * The block data, an array of all blocks.
          * For now they will be booleans but that will change.
-         * @type {boolean[]}
+         * @type {Block[]}
          */
         this.blockData = new Array(Chunk.volume);
-        this.blockData.fill(false);
+        this.blockData.fill(new AirBlock());
     }
 
     /**
@@ -70,7 +90,11 @@ export class Chunk {
         let randomIndex;
         for (counter = 0; counter < 100; counter++) {
             randomIndex = Math.floor(Math.random()*Chunk.volume);
-            this.blockData[randomIndex] = true;
+            this.blockData[randomIndex] = new StoneBlock();
+        }
+        for (counter = 0; counter < 100; counter++) {
+            randomIndex = Math.floor(Math.random()*Chunk.volume);
+            this.blockData[randomIndex] = new GrassBlock();
         }
     }
 
@@ -100,9 +124,15 @@ export class Chunk {
          * @type {number}
          */
         let firstZ;
+        /**
+         * The first block.
+         * @type {Block}
+         */
+        let firstBlock;
         for (firstX = 0; firstX < Chunk.size; firstX++)
         for (firstY = 0; firstY < Chunk.size; firstY++)
         for (firstZ = 0; firstZ < Chunk.size; firstZ++) {
+            firstBlock = this.blockData[firstX + firstY * Chunk.size + firstZ * Chunk.area];
             results.push(this.generateBlockFaceGeometryIfNeeded(
                 firstX, firstY, firstZ,
                 firstX, firstY + 1, firstZ,
@@ -114,7 +144,8 @@ export class Chunk {
                         firstX + 1, firstY + 1, firstZ + 1,
                         firstX, firstY + 1, firstZ + 1,
                         firstX, firstY + 1, firstZ
-                    ]
+                    ],
+                    uv: Chunk.generateBlockFaceUvYP(firstBlock.textures[0])
                 }
             ));
             results.push(this.generateBlockFaceGeometryIfNeeded(
@@ -128,7 +159,8 @@ export class Chunk {
                         firstX + 1, firstY, firstZ + 1,
                         firstX, firstY, firstZ + 1,
                         firstX, firstY, firstZ
-                    ]
+                    ],
+                    uv: Chunk.generateBlockFaceUvYM(firstBlock.textures[2])
                 }
             ));
             results.push(this.generateBlockFaceGeometryIfNeeded(
@@ -142,7 +174,8 @@ export class Chunk {
                         firstX + 1, firstY + 1, firstZ + 1,
                         firstX + 1, firstY, firstZ + 1,
                         firstX + 1, firstY, firstZ
-                    ]
+                    ],
+                    uv: Chunk.generateBlockFaceUvXP(firstBlock.textures[1])
                 }
             ));
             results.push(this.generateBlockFaceGeometryIfNeeded(
@@ -156,7 +189,8 @@ export class Chunk {
                         firstX, firstY + 1, firstZ + 1,
                         firstX, firstY, firstZ + 1,
                         firstX, firstY, firstZ
-                    ]
+                    ],
+                    uv: Chunk.generateBlockFaceUvXM(firstBlock.textures[1])
                 }
             ));
             results.push(this.generateBlockFaceGeometryIfNeeded(
@@ -170,7 +204,8 @@ export class Chunk {
                         firstX + 1, firstY + 1, firstZ + 1,
                         firstX + 1, firstY, firstZ + 1,
                         firstX, firstY, firstZ + 1
-                    ]
+                    ],
+                    uv: Chunk.generateBlockFaceUvZP(firstBlock.textures[1])
                 }
             ));
             results.push(this.generateBlockFaceGeometryIfNeeded(
@@ -184,7 +219,8 @@ export class Chunk {
                         firstX + 1, firstY + 1, firstZ,
                         firstX + 1, firstY, firstZ,
                         firstX, firstY, firstZ
-                    ]
+                    ],
+                    uv: Chunk.generateBlockFaceUvZM(firstBlock.textures[1])
                 }
             ));
         }
@@ -193,12 +229,15 @@ export class Chunk {
          * @type {BlockFaceGeometryData}
          */
         let unpackedResults = {
-            position: []
+            position: [],
+            uv: []
         };
         results.forEach(item=>{
             unpackedResults.position.push(...item.position)
+            unpackedResults.uv.push(...item.uv);
         });
         this.setGeometryBufferAttribute("position", unpackedResults.position, 3);
+        this.setGeometryBufferAttribute("uv", unpackedResults.uv, 2)
     }
 
     /**
@@ -208,7 +247,7 @@ export class Chunk {
      * @returns {boolean} If the block face is needed.
      */
     needsBlockFace(firstIndex, secondIndex) {
-        return this.blockData[firstIndex] && !this.blockData[secondIndex];
+        return (!this.blockData[firstIndex].isInvisible) && this.blockData[secondIndex].isInvisible;
     }
 
     /**
@@ -217,7 +256,7 @@ export class Chunk {
      * @returns {boolean} If the block face is needed.
      */
     needsBlockFaceAlt(firstIndex) {
-        return this.blockData[firstIndex];
+        return !this.blockData[firstIndex].isInvisible;
     }
 
     /**
@@ -264,7 +303,7 @@ export class Chunk {
             needsFace = this.needsBlockFaceAlt(firstIndex);
         }
         if (needsFace) return faceData;
-        else return {position: []};
+        else return {position: [], uv: []};
     }
 
     /**
@@ -276,4 +315,101 @@ export class Chunk {
     setGeometryBufferAttribute(name, values, channels) {
         this.mesh.geometry.setAttribute(name, new BufferAttribute(new Float32Array(values), channels));
     }
+
+    /**
+     * Generate uv mappings for the up direction.
+     * @param {number} textureAtlasIndex The index in the texture atlas.
+     * @returns {number[]} The uv map.
+     */
+    static generateBlockFaceUvYP(textureAtlasIndex) {
+        return [
+            textureAtlasIndex / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 0
+        ];
+    }
+
+    /**
+     * Generate uv mappings for the down direction.
+     * @param {number} textureAtlasIndex The index in the texture atlas.
+     * @returns {number[]} The uv map.
+     */
+    static generateBlockFaceUvYM(textureAtlasIndex) {
+        return [
+            textureAtlasIndex / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 0
+        ];
+    }
+
+    /**
+     * Generate uv mappings for the north direction.
+     * @param {number} textureAtlasIndex The index in the texture atlas.
+     * @returns {number[]} The uv map.
+     */
+    static generateBlockFaceUvZM(textureAtlasIndex) {
+        return [
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0
+        ];
+    }
+
+    /**
+     * Generate uv mappings for the south direction.
+     * @param {number} textureAtlasIndex The index in the texture atlas.
+     * @returns {number[]} The uv map.
+     */
+    static generateBlockFaceUvZP(textureAtlasIndex) {
+        return [
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+        ];
+    }
+
+    /**
+     * Generate uv mappings for the east direction.
+     * @param {number} textureAtlasIndex The index in the texture atlas.
+     * @returns {number[]} The uv map.
+     */
+    static generateBlockFaceUvXM(textureAtlasIndex) {
+        return [
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+        ];
+    }
+
+    /**
+     * Generate uv mappings for the west direction.
+     * @param {number} textureAtlasIndex The index in the texture atlas.
+     * @returns {number[]} The uv map.
+     */
+    static generateBlockFaceUvXP(textureAtlasIndex) {
+        return [
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 1,
+            textureAtlasIndex / Chunk.atlasSize, 0,
+            (textureAtlasIndex + 1) / Chunk.atlasSize, 0
+        ];
+    }
+
 }

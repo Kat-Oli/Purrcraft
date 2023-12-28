@@ -12,7 +12,8 @@ export class App {
          * @type {Display}
          */
         this.display = new Display(60, 0.1, 250, true);
-        this.display.moveCamera(Chunk.size/2, Chunk.size/2, Chunk.size*2);
+        this.display.moveCamera(Chunk.size/2, Chunk.size/2, Chunk.size);
+        this.display.camera.rotateY(Math.PI);
         /**
          * The game world.
          * @type {World}
