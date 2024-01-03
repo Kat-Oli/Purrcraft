@@ -12,14 +12,12 @@ export class App {
          * @type {Display}
          */
         this.display = new Display(60, 0.1, 250, true);
-        this.display.moveCamera(Chunk.size/2, Chunk.size/2, Chunk.size);
-        this.display.camera.rotateY(Math.PI);
+        this.display.moveCamera(Chunk.size/2, Chunk.size/2, Chunk.size/2);
         /**
          * The game world.
          * @type {World}
          */
-        this.world = new World(this.display.scene);
-        this.world.addChunk(new Chunk());
+        this.world = new World(this.display.scene, 2);
     }
 
     /**
@@ -34,11 +32,7 @@ export class App {
      */
     tick() {
         this.display.tick();
-        this.display.moveCamera(
-            this.display.camera.position.x,
-            this.display.camera.position.y,
-            this.display.camera.position.z - 0.01,
-        )
+        this.world.tick(this.display.camera);
     }
 
     /**

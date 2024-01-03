@@ -53,10 +53,31 @@ export class Chunk {
      */
     static material = new MeshBasicMaterial({map:this.texture,side:DoubleSide});
 
-    constructor() {
-        Chunk.texture.magFilter = NearestFilter;
-        Chunk.texture.minFilter = NearestFilter;
-
+    /**
+     * Create a chunk at a position. 
+     * @param {number} x The x position.
+     * @param {number} y The y position.
+     * @param {number} z The z position.
+     */
+    constructor(x, y, z) {
+        /**
+         * The x position of the chunk.
+         * @type {number}
+         * @readonly
+         */
+        this.x = x;
+        /**
+         * The y position of the chunk.
+         * @type {number}
+         * @readonly
+         */
+        this.y = y;
+        /**
+         * The z position of the chunk.
+         * @type {number}
+         * @readonly
+         */
+        this.z = z;
         /**
          * The threejs mesh used to render the chunk.
          * @type {Mesh}
@@ -65,6 +86,7 @@ export class Chunk {
             new BufferGeometry(),
             Chunk.material
         );
+        this.mesh.position.set(x * Chunk.size, y * Chunk.size, z * Chunk.size);
         /**
          * The block data, an array of all blocks.
          * For now they will be booleans but that will change.
@@ -72,6 +94,9 @@ export class Chunk {
          */
         this.blockData = new Array(Chunk.volume);
         this.blockData.fill(new AirBlock());
+
+        Chunk.texture.magFilter = NearestFilter;
+        Chunk.texture.minFilter = NearestFilter;
     }
 
     /**
