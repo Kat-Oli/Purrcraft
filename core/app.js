@@ -35,7 +35,6 @@ export class App {
      * Called every frame inside of run.
      */
     tick() {
-        this.display.moveCameraBy(0,0,-0.1);
         this.display.tick();
         this.world.tick(this.display.camera);
     }
