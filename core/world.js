@@ -1,5 +1,6 @@
 import { Chunk } from "./chunk.js"
 import { PerspectiveCamera, Scene } from "./lib/three.mjs";
+import { Terrain } from "./terrain.js";
 
 /**
  * Represents the game world.
@@ -9,8 +10,9 @@ export class World {
      * Create the world instance.
      * @param {Scene} scene The threejs scene.
      * @param {number} renderDistance The render distance.
+     * @param {Terrain} terrain The terrain to use.
      */
-    constructor(scene, renderDistance) {
+    constructor(scene, renderDistance, terrain) {
         /**
          * An array of all chunks in the world.
          * @type {Chunk[]}
@@ -26,6 +28,11 @@ export class World {
          * @type {number}
          */
         this.renderDistance = renderDistance;
+        /**
+         * The terrain to use.
+         * @type {Terrain}
+         */
+        this.terrain = terrain;
     }
 
     /**
@@ -34,7 +41,7 @@ export class World {
      */
     addChunk(chunk) {
         this.scene.add(chunk.mesh);
-        chunk.buildBlockData();
+        chunk.buildBlockData(this.terrain);
         chunk.buildGeometry();
         this.chunks.push(chunk);
     }

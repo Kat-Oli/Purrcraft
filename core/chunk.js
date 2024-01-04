@@ -1,6 +1,7 @@
 import { AirBlock, GrassBlock, StoneBlock } from "../block/nature.js";
 import { Block } from "./block.js";
 import { BufferAttribute, BufferGeometry, DoubleSide, Material, Mesh, MeshBasicMaterial, NearestFilter, Texture } from "./lib/three.mjs";
+import { Terrain } from "./terrain.js";
 import { loadTexture } from "./util.js";
 
 /**
@@ -101,26 +102,10 @@ export class Chunk {
 
     /**
      * Generates the block data for the chunk.
+     * @param {Terrain} terrain The terrain to use.
      */
-    buildBlockData() {
-        /**
-         * The counter for the for loop.
-         * @type {number}
-         */
-        let counter;
-        /**
-         * The random index to set the block.
-         * @type {number}
-         */
-        let randomIndex;
-        for (counter = 0; counter < 100; counter++) {
-            randomIndex = Math.floor(Math.random()*Chunk.volume);
-            this.blockData[randomIndex] = new StoneBlock();
-        }
-        for (counter = 0; counter < 100; counter++) {
-            randomIndex = Math.floor(Math.random()*Chunk.volume);
-            this.blockData[randomIndex] = new GrassBlock();
-        }
+    buildBlockData(terrain) {
+        this.blockData = terrain.generateChunkData(this);
     }
 
     /**

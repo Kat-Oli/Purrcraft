@@ -1,5 +1,7 @@
 import { Chunk } from "./chunk.js";
 import { Display } from "./display.js";
+import { Noise } from "./noise.js";
+import { Terrain } from "./terrain.js";
 import { World } from "./world.js";
 
 /**
@@ -12,12 +14,14 @@ export class App {
          * @type {Display}
          */
         this.display = new Display(60, 0.1, 250, true);
-        this.display.moveCamera(Chunk.size/2, Chunk.size/2, Chunk.size/2);
+        this.display.moveCamera(0, Chunk.size / 2, 0);
         /**
          * The game world.
          * @type {World}
          */
-        this.world = new World(this.display.scene, 2);
+        this.world = new World(this.display.scene, 2, new Terrain([
+            new Noise(10, 8)
+        ]));
     }
 
     /**
@@ -31,6 +35,7 @@ export class App {
      * Called every frame inside of run.
      */
     tick() {
+        this.display.moveCameraBy(0,0,-0.1);
         this.display.tick();
         this.world.tick(this.display.camera);
     }

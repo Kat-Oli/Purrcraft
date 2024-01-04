@@ -51,6 +51,20 @@ export class Display {
     }
 
     /**
+     * Move the camera with a velocity.
+     * @param {number} x The new x position.
+     * @param {number} y The new y position.
+     * @param {number} z The new z position.
+     */
+    moveCameraBy(x, y, z) {
+        this.camera.position.set(
+            this.camera.position.x + x,
+            this.camera.position.y + y,
+            this.camera.position.z + z
+        )
+    }
+
+    /**
      * The html canvas element used to show the graphics.
      * @type {HTMLCanvasElement}
      */
