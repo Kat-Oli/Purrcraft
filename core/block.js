@@ -29,4 +29,12 @@ export class Block {
     get isInvisible() {
         return false;
     }
+
+    /**
+     * If anything can collide with this block.
+     * @type {boolean}
+     */
+    get isSolid() {
+        return true;
+    }
 }

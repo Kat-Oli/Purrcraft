@@ -1,6 +1,10 @@
-import { Chunk } from "./chunk.js"
+import { Chunk } from "./chunk.js";
+import { AirBlock } from "../block/nature.js";
 import { PerspectiveCamera, Scene } from "./lib/three.mjs";
 import { Terrain } from "./terrain.js";
+import { Block } from "./block.js";
+import { modMod } from "./util.js";
+import { Player } from "./player.js";
 
 /**
  * Represents the game world.
@@ -33,6 +37,11 @@ export class World {
          * @type {Terrain}
          */
         this.terrain = terrain;
+        /**
+         * The player.
+         * @type {Player}
+         */
+        this.player = new Player();
     }
 
     /**
@@ -51,6 +60,7 @@ export class World {
      * @param {PerspectiveCamera} camera The camera.
      */
     tick(camera) {
+        this.player.tick(this, camera, 0.1)
         /**
          * The x position of the chunk.
          * @param {number}
@@ -108,5 +118,31 @@ export class World {
             }
         }
         return null;
+    }
+
+    /**
+     * Return the block at any position.
+     * If no block is found, returns AirBlock.
+     * @param {number} x The x position in blocks.
+     * @param {number} y The y position in blocks.
+     * @param {number} z The z position in blocks.
+     * @returns {Block} The block or air.
+     */
+    getBlockAt(x, y, z) {
+        /**
+         * The chunk at the position.
+         * @type {Chunk}
+         */
+        let ch = this.getChunkAt(
+            Math.floor(x / Chunk.size),
+            Math.floor(y / Chunk.size),
+            Math.floor(z / Chunk.size)
+        );
+        if (ch != undefined) return ch.blockData[
+            (modMod(x, Chunk.size)) +
+            (modMod(y, Chunk.size) * Chunk.size) +
+            (modMod(z, Chunk.size) * Chunk.area)
+        ];
+        else return new AirBlock();
     }
 }

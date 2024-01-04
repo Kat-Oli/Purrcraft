@@ -7,6 +7,10 @@ export class AirBlock extends Block {
     get isInvisible() {
         return true;
     }
+
+    get isSolid() {
+        return false;
+    }
 }
 
 /**
