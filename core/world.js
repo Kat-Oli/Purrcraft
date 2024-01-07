@@ -42,6 +42,11 @@ export class World {
          * @type {Player}
          */
         this.player = new Player();
+        /**
+         * The old time (previous frame.)
+         * @type {number}
+         */
+        this.oldTime = Date.now();
     }
 
     /**
@@ -60,7 +65,8 @@ export class World {
      * @param {PerspectiveCamera} camera The camera.
      */
     tick(camera) {
-        this.player.tick(this, camera, 0.1)
+        this.player.tick(this, camera, (Date.now() - this.oldTime) / 1000)
+        this.oldTime = Date.now();
         /**
          * The x position of the chunk.
          * @param {number}
