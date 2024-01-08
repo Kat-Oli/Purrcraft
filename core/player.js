@@ -68,6 +68,7 @@ export class Player {
          */
         const headPosition = this.position.clone().add(new Vector3(0,0.2,0));
         this.processCollisionFeet(world, feetPosition, delta);
+        //this.onKeyHold("w", delta)
     }
 
     /**
@@ -77,8 +78,7 @@ export class Player {
      * @param {number} delta The delta time.
      */
     processCollisionFeet(world, feetPosition, delta) {
-        if (this.processCollisionAt(world, feetPosition.x, feetPosition.y - 0.01, feetPosition.z)) {
-            this.velocity.y = 0;
+        if (this.processCollisionAt(world, feetPosition.x, feetPosition.y -0.008, feetPosition.z)) {
             this.canJump = true;
             for (let v = 0; v < Math.abs(this.velocity.y) + 0.05; v += 0.01) {
                 if (!this.processCollisionAt(world, feetPosition.x, feetPosition.y + v, feetPosition.z)) {
@@ -86,6 +86,7 @@ export class Player {
                     break;
                 }
             }
+            this.velocity.y = 0;
         }
         else {
             this.canJump = false;
@@ -122,6 +123,43 @@ export class Player {
      * @private
      */
     onKeyHold(key, delta) {
+        /**
+         * The rotated movement on the x axis.
+         * @type {number}
+         */
+        let moveX = 0;
+        /**
+         * The rotated movement on the y axis.
+         * @type {number}
+         */
+        let moveY = 0;
+        /**
+         * The y axis rotation of the player.
+         * @type {number}
+         */
+        const yr = this.rotation.y;
+        if (key == "w") {
+            moveX -= Math.sin(yr) * delta;
+            moveY -= Math.cos(yr) * delta;
+        }
+        if (key == "s") {
+            moveX += Math.sin(yr) * delta;
+            moveY += Math.cos(yr) * delta;
+        }
+        if (key == "a") {
+            moveX -= Math.sin(yr + Math.PI / 2) * delta;
+            moveY -= Math.cos(yr + Math.PI / 2) * delta;
+        }
+        if (key == "d") {
+            moveX += Math.sin(yr + Math.PI / 2) * delta;
+            moveY += Math.cos(yr + Math.PI / 2) * delta;
+        }
+        this.position.x += moveX * 5;
+        this.position.z += moveY * 5;
+        if (key == "arrowright")
+            this.rotation.y -= delta;
+        if (key == "arrowleft")
+            this.rotation.y += delta;
     }
 
     /**
@@ -135,7 +173,7 @@ export class Player {
             this.position.y += 0.01;
             this.velocity.y = 3;
         };
-        this.pressedKeys.push(event.key);
+        this.pressedKeys.push(event.key.toLowerCase());
     }
 
     /**
@@ -144,6 +182,6 @@ export class Player {
      * @private
      */
     onKeyUp(event) {
-        this.pressedKeys = this.pressedKeys.filter(i=>i!=event.key);
+        this.pressedKeys = this.pressedKeys.filter(i=>i!=event.key.toLowerCase());
     }
 }

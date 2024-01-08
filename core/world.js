@@ -148,7 +148,7 @@ export class World {
             (modMod(x, Chunk.size)) +
             (modMod(y, Chunk.size) * Chunk.size) +
             (modMod(z, Chunk.size) * Chunk.area)
-        ];
+        ] || new AirBlock();
         else return new AirBlock();
     }
 }
