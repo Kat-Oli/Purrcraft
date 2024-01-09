@@ -74,4 +74,13 @@ export class Noise {
     calculate(x, z) {
         return this.unmappedCalculate(x / this.scale, z / this.scale) * this.magnitude;
     }
+
+    /**
+     * The default noise values for terrain generation.
+     * @type {Noise[]}
+     * @readonly
+     */
+    static default = [
+        new Noise(10, 7)
+    ];
 }

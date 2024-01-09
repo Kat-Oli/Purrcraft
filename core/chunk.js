@@ -38,14 +38,14 @@ export class Chunk {
      * @type {Texture}
      * @readonly
      */
-    static texture = loadTexture("./assets/chunk_test.png");
+    static texture = loadTexture("./assets/chunk.png");
 
     /**
      * The texture atlas.
      * @type {number}
      * @readonly
      */
-    static atlasSize = 4;
+    static atlasSize = 5;
 
     /**
      * The material applied to all chunks.
@@ -105,7 +105,7 @@ export class Chunk {
      * @param {Terrain} terrain The terrain to use.
      */
     buildBlockData(terrain) {
-        this.blockData = terrain.generateChunkData(this);
+        terrain.generateChunkData(this);
     }
 
     /**

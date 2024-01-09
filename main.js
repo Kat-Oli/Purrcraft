@@ -1,3 +1,9 @@
 import { App } from "./core/app.js";
 
-new App().run();
+try {
+    new App().run();
+}
+catch (err) {
+    alert(`Something went wrong!\n${err}`);
+    location.reload();
+}

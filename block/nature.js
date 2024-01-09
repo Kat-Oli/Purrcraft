@@ -39,3 +39,12 @@ export class StoneBlock extends Block {
         return [3, 3, 3];
     }
 }
+
+/**
+ * A block of sand.
+ */
+export class SandBlock extends Block {
+    get textures() {
+        return [4, 4, 4];
+    }
+}

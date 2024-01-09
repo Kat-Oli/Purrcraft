@@ -1,6 +1,6 @@
+import { desert, grassland } from "../biome/common.js";
 import { Chunk } from "./chunk.js";
 import { Display } from "./display.js";
-import { Noise } from "./noise.js";
 import { Terrain } from "./terrain.js";
 import { World } from "./world.js";
 
@@ -20,8 +20,8 @@ export class App {
          * @type {World}
          */
         this.world = new World(this.display.scene, 2, new Terrain([
-            new Noise(10, 8)
-        ]));
+            grassland, desert
+        ], 3));
     }
 
     /**
