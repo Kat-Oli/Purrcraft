@@ -1,3 +1,17 @@
 body {
     margin: 0px;
+    cursor: none;
+}
+
+#gui-content {
+    position: fixed;
+    color: white;
+}
+
+#not-ready-warning {
+    top: 10%;
+    right: 15%;
+    color: yellow;
+    transform: -50% -0%;
+    position: fixed;
 }

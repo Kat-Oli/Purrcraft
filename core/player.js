@@ -1,4 +1,4 @@
-import { Camera, Vector3 } from "./lib/three.mjs";
+import { AxesHelper, Camera, Euler, Quaternion, Vector2, Vector3 } from "./lib/three.mjs";
 import { World } from "./world.js";
 
 /**
@@ -17,10 +17,15 @@ export class Player {
          */
         this.position = new Vector3(0, 16, 0);
         /**
-         * The rotation of the player.
-         * @param {Vector3}
+         * The rotation of the player used in purrcraft.
+         * @type {Vector2} 
          */
-        this.rotation = new Vector3(0, 0, 0);
+        this.rotation = new Vector2(0, 0, 0);
+        /**
+         * The rotation of the player used in threejs.
+         * @type {Vector3}
+         */
+        this.actualRotation = new Vector3(0, 0, 0);
         /**
          * The velocity of the player.
          * @type {Vector3}
@@ -28,6 +33,8 @@ export class Player {
         this.velocity = new Vector3(0, 0, 0);
         addEventListener("keydown", ev=>this.onKeyDown(ev));
         addEventListener("keyup", ev=>this.onKeyUp(ev));
+        addEventListener("mousemove", ev=>this.onMouseMove(ev));
+        document.body.requestPointerLock();
         /**
          * Every pressed key.
          * @type {string[]}
@@ -45,9 +52,29 @@ export class Player {
     tick(world, camera, delta) {
         this.triggerOnKeyHold(delta);
         this.processCollision(world, delta);
+        this.updateActualRotation();
         this.position.add(this.velocity.clone().multiplyScalar(delta));
         camera.position.set(...this.position);
-        camera.rotation.set(...this.rotation);
+        camera.rotation.set(...this.actualRotation);
+    }
+
+    /**
+     * Updates the actual rotation.
+     */
+    updateActualRotation() {
+        /**
+         * The first axis angle.
+         * @type {Quaternion}
+         */
+        let a = new Quaternion().setFromAxisAngle(new Vector3(0, -1, 0), this.rotation.x);
+        /**
+         * The second axis angle.
+         * @type {Quaternion}
+         */
+        let b = new Quaternion().setFromAxisAngle(new Vector3(-1, 0, 0), this.rotation.y);
+        a.multiply(b);
+        a.normalize();
+        this.actualRotation.setFromEuler(new Euler().setFromQuaternion(a));
     }
 
     /**
@@ -68,7 +95,6 @@ export class Player {
          */
         const headPosition = this.position.clone().add(new Vector3(0,0.2,0));
         this.processCollisionFeet(world, feetPosition, delta);
-        //this.onKeyHold("w", delta)
     }
 
     /**
@@ -134,32 +160,28 @@ export class Player {
          */
         let moveY = 0;
         /**
-         * The y axis rotation of the player.
+         * The x axis rotation of the player.
          * @type {number}
          */
-        const yr = this.rotation.y;
+        const xr = this.rotation.x;
         if (key == "w") {
-            moveX -= Math.sin(yr) * delta;
-            moveY -= Math.cos(yr) * delta;
+            moveX -= Math.sin(xr) * delta;
+            moveY -= Math.cos(xr) * delta;
         }
         if (key == "s") {
-            moveX += Math.sin(yr) * delta;
-            moveY += Math.cos(yr) * delta;
+            moveX += Math.sin(xr) * delta;
+            moveY += Math.cos(xr) * delta;
         }
         if (key == "a") {
-            moveX -= Math.sin(yr + Math.PI / 2) * delta;
-            moveY -= Math.cos(yr + Math.PI / 2) * delta;
+            moveX += Math.sin(xr + Math.PI / 2) * delta;
+            moveY += Math.cos(xr + Math.PI / 2) * delta;
         }
         if (key == "d") {
-            moveX += Math.sin(yr + Math.PI / 2) * delta;
-            moveY += Math.cos(yr + Math.PI / 2) * delta;
+            moveX -= Math.sin(xr + Math.PI / 2) * delta;
+            moveY -= Math.cos(xr + Math.PI / 2) * delta;
         }
-        this.position.x += moveX * 5;
+        this.position.x -= moveX * 5;
         this.position.z += moveY * 5;
-        if (key == "arrowright")
-            this.rotation.y -= delta;
-        if (key == "arrowleft")
-            this.rotation.y += delta;
     }
 
     /**
@@ -174,6 +196,9 @@ export class Player {
             this.velocity.y = 3;
         };
         this.pressedKeys.push(event.key.toLowerCase());
+        if (event.key == "escape") {
+            document.body.requestPointerLock();
+        }
     }
 
     /**
@@ -183,5 +208,13 @@ export class Player {
      */
     onKeyUp(event) {
         this.pressedKeys = this.pressedKeys.filter(i=>i!=event.key.toLowerCase());
+    }
+
+    /**
+     * This function is run when the move is moved.
+     * @param {MouseEvent} event The event.
+     */
+    onMouseMove(event) {
+        this.rotation.add(new Vector2(event.movementX, event.movementY).multiplyScalar(0.01));
     }
 }
